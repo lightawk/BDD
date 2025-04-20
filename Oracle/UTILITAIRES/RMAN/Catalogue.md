@@ -1,0 +1,88 @@
+# catalogue [-oracle]
+
+> Se connecter a la base et changer le mot de passe.
+
+```
+sqlplus / as sysdba
+ALTER USER RMAN_SCHEMA IDENTIFIED BY RMAN_SCHEMA;
+exit;
+```
+
+> Se connecter au catalogue RMAN.
+
+```
+rman
+CONNECT catalog RMAN_SCHEMA@CATRMAN;
+```
+
+> Mettre a niveau le catalogue.
+
+```
+UPGRADE CATALOG;
+```
+
+> Se connecter a la base et compiler le schama.
+
+```
+sqlplus / as sysdba
+EXEC DBMS_UTILITY.compile_schema(schema => 'RMAN_SCHEMA');
+exit;
+```
+
+> Enregistrement base dans le catalogue.
+
+```
+rman catalog RMAN_SCHEMA/RMAN_SCHEMA@CATRMAN
+LIST INCARNATION [ OF DATABASE DB ];
+UNREGISTER DATABASE DB;
+RUN
+{
+set dbid 1312293510;
+UNREGISTER DATABASE DB NOPROMPT;
+}
+REGISTER DATABASE;
+```
+
+## Creation du catalogue
+
+> Creation du tablespace et de l'utilisateur.
+
+```
+CREATE TABLESPACE TBL_RMAN DATAFILE '/rman/u03/oradata/CATRMAN/tbl_RMAN_01.dbf' SIZE 32M AUTOEXTEND ON NEXT 16M MAXSIZE UNLIMITED;
+CREATE USER RMAN_SCHEMA IDENTIFIED BY RMAN_SCHEMA DEFAULT TABLESPACE TBL_RMAN QUOTA UNLIMITED ON TBL_RMAN;
+GRANT RESOURCE,
+      CONNECT,
+      RECOVERY_CATALOG_OWNER,
+      EXP_FULL_DATABASE,
+      IMP_FULL_DATABASE,
+      EXECUTE ANY TYPE,
+      UNDER ANY TYPE,
+      CREATE INDEXTYPE,
+      UNLIMITED TABLESPACE,
+      CREATE TYPE,
+      DROP ANY INDEXTYPE,
+      CREATE ANY TYPE,
+      DROP ANY TYPE,
+      EXECUTE ANY INDEXTYPE,
+      CREATE ANY INDEXTYPE
+TO RMAN_SCHEMA;
+ALTER USER RMAN_SCHEMA DEFAULT ROLE ALL;
+GRANT ALTER ANY TYPE TO RMAN_SCHEMA;
+GRANT ALTER ANY INDEXTYPE TO RMAN_SCHEMA;
+```
+
+> Creation du repertoire pour le stockage des dumps.
+
+```
+CREATE OR REPLACE DIRECTORY RMAN_SCHEMA as '/rman/u05/dump/RMAN_SCHEMA';
+GRANT READ, WRITE ON DIRECTORY RMAN_SCHEMA TO EXP_FULL_DATABASE;
+GRANT READ, WRITE ON DIRECTORY RMAN_SCHEMA TO IMP_FULL_DATABASE;
+GRANT EXECUTE, READ, WRITE ON DIRECTORY RMAN_SCHEMA TO RMAN_SCHEMA WITH GRANT OPTION;
+```
+
+> Creation du catalogue.
+
+```
+rman catalog RMAN_SCHEMA/RMAN_SCHEMA@CATRMAN
+CREATE CATALOG;
+```

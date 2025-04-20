@@ -1,0 +1,83 @@
+# sql [-metadata]
+
+## DBMS_METADATA.get_ddl [-DIRECTORY]
+
+> Selectionne les commandes de creation des repertoires avec exclusions.
+
+```
+SET LONG 20000 LONGCHUNKSIZE 20000 PAGESIZE 0 LINESIZE 1000 FEEDBACK OFF VERIFY OFF TRIMSPOOL ON
+EXEC DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'SQLTERMINATOR', true);
+EXEC DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'PRETTY', true);
+
+SELECT DBMS_METADATA.get_ddl ('DIRECTORY', directory_name)
+  FROM dba_directories
+ WHERE directory_name NOT LIKE 'ORACLE_OCM%';
+```
+
+## DBMS_METADATA.get_ddl [-PROFILE]
+
+> Selectionne la commande de creation de profils dont le profil est DEFAULT.
+
+```
+SET LONG 20000 LONGCHUNKSIZE 20000 PAGESIZE 0 LINESIZE 1000 FEEDBACK OFF VERIFY OFF TRIMSPOOL ON
+EXEC DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'SQLTERMINATOR', true);
+EXEC DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'PRETTY', true);
+
+SELECT DBMS_METADATA.get_ddl ('PROFILE', profile)     AS profile_ddl
+  FROM (SELECT DISTINCT profile
+          FROM dba_profiles)
+ WHERE PROFILE = 'DEFAULT';
+```
+
+## DBMS_METADATA.get_ddl [-SYNONYM]
+
+> Selectionne les commandes de creation des synonyms avec exclusions.
+
+```
+SET LONG 20000 LONGCHUNKSIZE 20000 PAGESIZE 0 LINESIZE 1000 FEEDBACK OFF VERIFY OFF TRIMSPOOL ON
+EXEC DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'SQLTERMINATOR', true);
+EXEC DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'PRETTY', true);
+
+SELECT DBMS_METADATA.get_ddl ('SYNONYM', synonym_name, owner)
+  FROM dba_synonyms
+ WHERE     table_owner NOT IN ('SYS',
+                               'SYSTEM',
+                               'XDB',
+                               'WMSYS',
+                               'DBSNMP')
+       AND owner = 'PUBLIC';
+```
+
+## DBMS_METADATA.get_ddl [-TABLESPACE]
+
+> Selectionne les commandes de creation des tablespaces de la base hors tablespaces SYSTEM, SYSAUX, TEMP et UNDOTBS.
+
+```
+SET LONG 20000 LONGCHUNKSIZE 20000 PAGESIZE 0 LINESIZE 1000 FEEDBACK OFF VERIFY OFF TRIMSPOOL ON
+EXEC DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'SQLTERMINATOR', true);
+EXEC DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'PRETTY', true);
+
+SELECT DBMS_METADATA.get_ddl ('TABLESPACE', tablespace_name)
+  FROM dba_tablespaces
+ WHERE tablespace_name NOT IN ('SYSTEM',
+                               'SYSAUX',
+                               'TEMP',
+                               'UNDOTBS');
+```
+
+## DBMS_METADATA.get_ddl [-TRIGGER]
+
+> Selectionne les commandes de creation des triggers en y excluant certains triggers.
+
+```
+SET LONG 20000 LONGCHUNKSIZE 20000 PAGESIZE 0 LINESIZE 1000 FEEDBACK OFF VERIFY OFF TRIMSPOOL ON
+EXEC DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'SQLTERMINATOR', true);
+EXEC DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM, 'PRETTY', true);
+
+SELECT DBMS_METADATA.get_ddl ('TRIGGER', trigger_name, owner)
+  FROM all_triggers
+ WHERE     trigger_name NOT LIKE 'AW%'
+       AND trigger_name NOT LIKE 'LOGMNRGGC%'
+       AND owner = 'SYS'
+       AND trigger_name NOT LIKE 'XDB%';
+```
